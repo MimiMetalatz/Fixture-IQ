@@ -5,6 +5,7 @@ from app.explanation.outcome_template import OutcomeExplanationTemplate
 from app.utils.aggregation import aggregate_outcomes
 from app.vector_store.pinecone_vector_store import PineconeVectorStore
 from app.explanation.comparable_match_filter import filter_and_sort_recent_comparable_matches
+from app.explanation.types import ComparableEvidenceSummary
 
 # --------------------------------------------------
 # 1. Define a SINGLE upcoming fixture context
@@ -25,11 +26,15 @@ context_builder = ContextBuilder(data_dir="data/raw", form_window=5)
 # Odds as of January 2, 2026
 # {"home_odds": 1.67, "draw_odds": 4.40, "away_odds": 4.40}
 fixture_context = context_builder.build_single_context(
-    home_team="Bournemouth",
-    away_team="Arsenal",
-    home_odds=6.75,
-    draw_odds=4.60,
-    away_odds=1.48,)
+    home_team="Man City",
+    away_team="Chelsea",
+    home_odds=1.56,
+    draw_odds=4.6,
+    away_odds=5.7,)
+
+# print(type(fixture_context))
+# print(fixture_context["HomeTeam"])
+# print(fixture_context["AwayTeam"])
 
 # --------------------------------------------------
 # 2. Build context vector (single)
@@ -49,12 +54,14 @@ store = PineconeVectorStore(
 )
 
 neighbors = store.query(query_vector, top_k=25)["matches"]
+# print(neighbors)
 
 # --------------------------------------------------
 # 4. Aggregate historical outcomes
 # --------------------------------------------------
 
 evidence = aggregate_outcomes(neighbors)
+# print(evidence)
 
 # --------------------------------------------------
 # 5. Make decision
@@ -72,10 +79,21 @@ display_matches = filter_and_sort_recent_comparable_matches(neighbors, allowed_s
 
 # print(display_matches)
 
-text = OutcomeExplanationTemplate().generate(
-    fixture_context,
-    decision,
+evidence_summary = ComparableEvidenceSummary(
     display_matches=display_matches,
+    total_matches=len(neighbors),
+    season_count=len({m["metadata"].get("season") for m in neighbors})
+)
+
+fixture = {
+    "home_team": fixture_context["HomeTeam"],
+    "away_team": fixture_context["AwayTeam"],
+}
+
+text = OutcomeExplanationTemplate().generate(
+    decision,
+    fixture=fixture,
+    evidence_summary=evidence_summary,
 )
 
 print(text)

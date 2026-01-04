@@ -1,3 +1,4 @@
+from pyparsing import Optional
 from app.explanation.spec_outcome_v1 import (
     HEADER,
     SECTION_DISTRIBUTION_INTRO,
@@ -7,6 +8,7 @@ from app.explanation.spec_outcome_v1 import (
     WORDING_MODERATE_LEAN,
     WORDING_HIGH_LEAN,
 )
+from app.explanation.types import ComparableEvidenceSummary
 
 from app.utils.logging import get_explanation_logger
 
@@ -45,9 +47,9 @@ class OutcomeExplanationTemplate:
         return "\n".join(lines)
 
     # ---------- Confidence-aware assessment ----------
-    def _assessment_text(self, pred: str, conf: str) -> str:
+    def _assessment_text(self, pred: str, conf: str, fixture_label: str) -> str:
         if pred == "no_clear_lean":
-            return WORDING_NO_CLEAR_LEAN
+            return WORDING_NO_CLEAR_LEAN.format(fixture=fixture_label)
 
         side = {
             "home": "the home side",
@@ -56,19 +58,27 @@ class OutcomeExplanationTemplate:
         }[pred]
 
         if conf == "low":
-            return WORDING_LOW_LEAN.format(side=side)
+            return WORDING_LOW_LEAN.format(fixture=fixture_label, side=side)
         if conf == "moderate":
-            return WORDING_MODERATE_LEAN.format(side=side)
+            return WORDING_MODERATE_LEAN.format(fixture=fixture_label, side=side)
         if conf == "high":
-            return WORDING_HIGH_LEAN.format(side=side)
+            return WORDING_HIGH_LEAN.format(fixture=fixture_label,side=side)
 
-        return WORDING_LOW_LEAN.format(side=side)
+        return WORDING_LOW_LEAN.format(fixture=fixture_label, side=side)
 
-    # ---------- Main generator ----------
-    def generate(self, context: dict, decision: dict, display_matches=None) -> str:
+    # ---------- Main generator ----------    
+    def generate(self, decision: dict, fixture: dict, evidence_summary: ComparableEvidenceSummary | None = None) -> str:
         pred = decision["prediction"]
         conf = decision["confidence"]
         rates = decision["rates"]
+        if evidence_summary:
+            display_matches = evidence_summary.display_matches
+            total_matches = evidence_summary.total_matches
+            season_count = evidence_summary.season_count
+        else:
+            display_matches = None
+            total_matches = None
+            season_count = None
 
         logger.info(
             "Outcome explanation generated | "
@@ -78,10 +88,11 @@ class OutcomeExplanationTemplate:
             f"rates={rates}"
         )
 
-        assessment = self._assessment_text(pred, conf)
+        fixture_label = f"{fixture['home_team']} vs {fixture['away_team']}"
+        assessment = self._assessment_text(pred, conf, fixture_label=fixture_label)
 
         distribution = (
-            f"{SECTION_DISTRIBUTION_INTRO}\n"
+            f"{SECTION_DISTRIBUTION_INTRO.format(total_matches=total_matches, season_count=season_count)}\n"
             f"Home wins: {rates['H']:.0%} · "
             f"Draws: {rates['D']:.0%} · "
             f"Away wins: {rates['A']:.0%}"
@@ -89,8 +100,7 @@ class OutcomeExplanationTemplate:
 
         prediction_text = (
             "Prediction: No clear lean"
-            if pred == "no_clear_lean"
-            # else f"Prediction: {pred.capitalize()} win"
+            if pred == "no_clear_lean"            
             else f"Prediction: {pred.capitalize()}"
         )
 
