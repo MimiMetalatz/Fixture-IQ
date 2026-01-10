@@ -26,8 +26,8 @@ context_builder = ContextBuilder(data_dir="data/raw", form_window=5)
 # Odds as of January 2, 2026
 # {"home_odds": 1.67, "draw_odds": 4.40, "away_odds": 4.40}
 fixture_context = context_builder.build_single_context(
-    home_team="Man City",
-    away_team="Chelsea",
+    home_team="Arsenal",
+    away_team="Liverpool",
     home_odds=1.56,
     draw_odds=4.6,
     away_odds=5.7,)

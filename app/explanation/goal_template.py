@@ -60,8 +60,8 @@ class GoalExplanationTemplate:
         rates = decision["rates"]
 
         header = SECTION_DISTRIBUTION_INTRO.format(
-            total=evidence.total_matches,
-            seasons=evidence.season_count,
+            total_matches=evidence.total_matches,
+            season_count=evidence.season_count,
         )
 
         body = (
