@@ -40,7 +40,7 @@ class PineconeVectorStore:
             namespace=self.namespace,
         )
 
-    def query(self, vector, top_k=25, include_metadata=True):
+    def query(self, vector:list[float], top_k: int = 25, include_metadata=True) -> list[dict]:
         return self.index.query(
             vector=vector,
             top_k=top_k,

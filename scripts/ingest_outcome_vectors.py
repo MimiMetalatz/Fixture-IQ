@@ -1,20 +1,20 @@
 from app.context.context_builder import ContextBuilder
 from app.context.context_vector_builder import ContextVectorBuilder
 from app.vector_store.pinecone_vector_store import PineconeVectorStore
+from app.config.settings import settings
+from app.utils.batch import batch
 
+data_dir = settings.data_dir
+outcome_market = settings.outcome_market_namespace
+pinecone_outcome_index_name = settings.pinecone_outcome_index_name
 
 def make_vector_id(row):
     return f"{row['season']}_{row['Date']}_{row['HomeTeam']}_{row['AwayTeam']}"
 
 
-def batch(iterable, batch_size=1000):
-    for i in range(0, len(iterable), batch_size):
-        yield iterable[i:i + batch_size]
-
-
 def main():
     # 1. Build context
-    context_builder = ContextBuilder(data_dir="data/raw")
+    context_builder = ContextBuilder(data_dir=data_dir)
     context_df = context_builder.build()
 
     # 2. Build vectors
@@ -23,9 +23,9 @@ def main():
 
     # 3. Init Pinecone
     store = PineconeVectorStore(
-        index_name="fixtureiq-outcome-v1",
+        index_name=pinecone_outcome_index_name,
         dimension=vectors_df.shape[1],
-        namespace="outcome_market",
+        namespace=outcome_market,
     )
 
     # 4. Prepare records

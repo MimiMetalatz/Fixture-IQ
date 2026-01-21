@@ -91,7 +91,8 @@ class GoalExplanationTemplate:
             lines.append(
                 f"• {md['home_team']} vs {md['away_team']} "
                 f"({md['season']}) – "
-                f"{'Over 2.5 goals' if md['total_goals'] > 2.5 else 'Under 2.5 goals'}"
+                # f"{'Over 2.5 goals' if md['total_goals'] > 2.5 else 'Under 2.5 goals'}"
+                f"{'Over 2.5 goals' if md['fthg'] + md['ftag'] > 2.5 else 'Under 2.5 goals'}"
             )
 
         return "\n".join(lines)
