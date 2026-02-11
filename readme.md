@@ -1,6 +1,6 @@
 # Fixture-IQ
 
-A football match outcome prediction system that uses vector similarity search to find historically comparable fixtures and predict results based on past patterns.
+> A football match outcome prediction system that uses vector similarity search to find historically comparable fixtures and predict results based on past patterns.
 
 ## How It Works
 
